@@ -2,18 +2,33 @@
 
 Software educativo para Teoría de la Computación (UFPS). Construye, determiniza y minimiza autómatas finitos y explica cada paso.
 
+- **Estudiante:** Jeisson Javier Chacón Parada · Código 1151594
+- **Docente:** Janeth Parada
+- **Aplicación desplegada:** https://microproyecto3-automatas.vercel.app
+
 - **Modalidad A:** alfabeto + expresión regular → AFN-ε (Thompson) → AFD (subconjuntos) → inaccesibles → AFD mínimo (Moore)
 - **Modalidad B:** autómata ingresado → clasificación AFD/AFN/AFN-ε → AFD (si hace falta) → inaccesibles → AFD mínimo
 - En cada etapa se muestran la tabla de transición, el diagrama y la explicación paso a paso. También se pueden comparar las etapas con el resultado final y simular cadenas sobre cualquiera de ellas.
 
 ## Instalación y ejecución
 
+Requiere Python 3.9 o superior.
+
 ```bash
+git clone https://github.com/JeissonChacon23/microproyecto3-automatas.git
+cd microproyecto3-automatas
 python3 -m venv .venv
-source .venv/bin/activate          # En Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements-dev.txt
-python app.py                      # abre http://127.0.0.1:5000
-python -m pytest -q                # pruebas automáticas
+python app.py
+```
+
+Luego abre http://127.0.0.1:5000. En Windows, el entorno se activa con `.venv\Scripts\activate`.
+
+Pruebas automáticas (resultado esperado: `33 passed`):
+
+```bash
+python -m pytest -q
 ```
 
 Para desplegar en Vercel: `vercel` desde la raíz del proyecto (usa `vercel.json`).
