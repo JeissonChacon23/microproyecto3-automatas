@@ -1,0 +1,178 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Autómatas Finitos · Teoría de la Computación</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+<header class="cabecera">
+  <div class="contenedor">
+    <p class="eyebrow">Teoría de la Computación · Microproyecto #3</p>
+    <h1>Autómatas finitos: construcción, determinización y minimización</h1>
+    <p class="sub">Ingresa una expresión regular o un autómata y sigue paso a paso cada transformación hasta el AFD mínimo.</p>
+  </div>
+</header>
+
+<main class="contenedor">
+  <!-- ============ Entrada ============ -->
+  <section class="tarjeta">
+    <div class="pestanas" role="tablist">
+      <button class="pestana activa" data-modo="A" role="tab">A · Desde una expresión regular</button>
+      <button class="pestana" data-modo="B" role="tab">B · Desde un autómata</button>
+    </div>
+
+    <!-- Modalidad A -->
+    <form id="formA" class="formulario" autocomplete="off">
+      <div class="fila-campos">
+        <label class="campo corto">
+          <span>Alfabeto Σ</span>
+          <input name="alfabeto" value="a, b" placeholder="a, b">
+          <small>Un carácter por símbolo, separados por comas.</small>
+        </label>
+        <label class="campo">
+          <span>Expresión regular</span>
+          <input name="expresion" id="expresion" value="(a|b)*abb" placeholder="(a|b)*abb" class="mono">
+          <div class="teclado">
+            <button type="button" data-ins="ε">ε</button>
+            <button type="button" data-ins="|">|</button>
+            <button type="button" data-ins="*">*</button>
+            <button type="button" data-ins="+">+</button>
+            <button type="button" data-ins="?">?</button>
+            <button type="button" data-ins="(">(</button>
+            <button type="button" data-ins=")">)</button>
+          </div>
+        </label>
+      </div>
+      <div class="ejemplos" data-form="A">
+        <span>Ejemplos:</span>
+        <button type="button" data-a="a, b" data-e="(a|b)*abb">(a|b)*abb</button>
+        <button type="button" data-a="0, 1" data-e="(0|1)*1(0|1)">penúltimo es 1</button>
+        <button type="button" data-a="a, b" data-e="a+b?">a+b?</button>
+        <button type="button" data-a="a, b, c" data-e="(ab|c)*(a|ε)">(ab|c)*(a|ε)</button>
+        <button type="button" data-a="0, 1" data-e="(0|1)*00(0|1)*">contiene 00</button>
+      </div>
+      <details class="ayuda">
+        <summary>Sintaxis de la expresión regular</summary>
+        <table class="tabla-ayuda">
+          <tr><td class="mono">a</td><td>Símbolo del alfabeto</td><td class="mono">ε</td><td>Cadena vacía</td></tr>
+          <tr><td class="mono">r|s</td><td>Unión</td><td class="mono">rs</td><td>Concatenación (implícita)</td></tr>
+          <tr><td class="mono">r*</td><td>Cero o más</td><td class="mono">r+</td><td>Una o más</td></tr>
+          <tr><td class="mono">r?</td><td>Cero o una</td><td class="mono">(r)</td><td>Agrupación</td></tr>
+        </table>
+        <p>Precedencia: <span class="mono">* + ?</span> &gt; concatenación &gt; <span class="mono">|</span>. Los espacios se ignoran.
+          Reservados (no pueden estar en Σ): <span class="mono">( ) | * + ? ε , · ∅</span></p>
+      </details>
+      <div class="acciones"><button class="primario" type="submit">Construir y minimizar</button></div>
+      <p class="error" data-error></p>
+    </form>
+
+    <!-- Modalidad B -->
+    <form id="formB" class="formulario oculto" autocomplete="off">
+      <div class="fila-campos">
+        <label class="campo"><span>Estados Q</span><input name="estados" value="p, q, r" class="mono"></label>
+        <label class="campo corto"><span>Alfabeto Σ</span><input name="alfabeto" value="a, b" class="mono"></label>
+        <label class="campo corto"><span>Estado inicial</span><input name="inicial" value="p" class="mono"></label>
+        <label class="campo corto"><span>Estados finales F</span><input name="finales" value="r" class="mono"></label>
+      </div>
+      <label class="campo">
+        <span>Transiciones (una por línea)</span>
+        <textarea name="transiciones" rows="6" class="mono">p, a -> p, q
+p, b -> p
+q, b -> r</textarea>
+        <small>Formato: <span class="mono">origen, símbolo -> destino</span>. Varios destinos separados por comas (no determinismo).
+          Usa <span class="mono">ε</span> o <span class="mono">eps</span> para transiciones vacías. Las líneas con # son comentarios.</small>
+      </label>
+      <div class="ejemplos" data-form="B">
+        <span>Ejemplos:</span>
+        <button type="button" data-ej="afn">AFN (termina en ab)</button>
+        <button type="button" data-ej="afne">AFN-ε</button>
+        <button type="button" data-ej="afd">AFD no mínimo</button>
+        <button type="button" data-ej="incompleto">AFD incompleto + inaccesible</button>
+      </div>
+      <div class="acciones"><button class="primario" type="submit">Analizar y minimizar</button></div>
+      <p class="error" data-error></p>
+    </form>
+  </section>
+
+  <!-- ============ Resultados ============ -->
+  <section id="resultados" class="oculto">
+    <nav class="etapas" id="etapas"></nav>
+
+    <article class="tarjeta" id="etapa">
+      <div class="etapa-cabecera">
+        <div>
+          <p class="eyebrow" id="etapaNumero"></p>
+          <h2 id="etapaTitulo"></h2>
+          <p class="sub" id="etapaResumen"></p>
+        </div>
+        <span class="insignia" id="etapaTipo"></span>
+      </div>
+      <div class="rejilla" id="etapaAutomata">
+        <div>
+          <h3>Tabla de transición</h3>
+          <div class="tabla-envoltura" id="etapaTabla"></div>
+          <p class="nota">→ estado inicial · * estado final · — sin transición</p>
+        </div>
+        <div>
+          <div class="titulo-con-accion">
+            <h3>Diagrama de transición</h3>
+            <button class="secundario pequeno" data-descargar="etapaDiagrama">Descargar SVG</button>
+          </div>
+          <div class="diagrama" id="etapaDiagrama"></div>
+        </div>
+      </div>
+      <h3>Paso a paso</h3>
+      <ol class="pasos" id="etapaPasos"></ol>
+    </article>
+
+    <article class="tarjeta">
+      <h2>Comparar etapas</h2>
+      <p class="sub">Consulta el resultado de cualquier etapa junto al AFD mínimo final.</p>
+      <div class="resumen-estados" id="resumenEstados"></div>
+      <div class="comparar">
+        <div>
+          <select id="compararIzq"></select>
+          <div class="tabla-envoltura" id="compararTablaIzq"></div>
+          <div class="diagrama" id="compararDiagramaIzq"></div>
+        </div>
+        <div>
+          <p class="etiqueta-fija">AFD mínimo (resultado final)</p>
+          <div class="tabla-envoltura" id="compararTablaDer"></div>
+          <div class="diagrama" id="compararDiagramaDer"></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="tarjeta">
+      <h2>Simular cadenas</h2>
+      <p class="sub">Escribe una cadena (o deja vacío / ε para la cadena vacía) y elige sobre qué autómata recorrerla.</p>
+      <form id="formSim" class="fila-campos" autocomplete="off">
+        <label class="campo"><span>Cadena</span><input name="cadena" id="cadena" class="mono" placeholder="abb"></label>
+        <label class="campo corto"><span>Autómata</span><select id="simAutomata"></select></label>
+        <div class="acciones abajo"><button class="primario" type="submit">Simular</button></div>
+      </form>
+      <p class="error" id="simError"></p>
+      <div id="simResultado" class="oculto">
+        <p class="veredicto" id="simVeredicto"></p>
+        <div class="rejilla">
+          <div class="tabla-envoltura" id="simPasos"></div>
+          <div class="diagrama" id="simDiagrama"></div>
+        </div>
+      </div>
+    </article>
+  </section>
+</main>
+
+<footer class="contenedor pie">
+  Algoritmos implementados a mano en Python (Thompson, subconjuntos, Moore). Los diagramas se dibujan con
+  Viz.js (Graphviz compilado a WebAssembly), usado únicamente para la representación gráfica.
+</footer>
+
+<script src="{{ url_for('static', filename='vendor/viz-global.js') }}"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
